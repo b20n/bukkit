@@ -1,0 +1,9 @@
+{application, bukkit_hdr, [
+    {description, "hdr histograms"},
+    {vsn, git},
+    {registered, []},
+    {applications, [
+        kernel,
+        stdlib
+    ]}
+]}.
