@@ -12,6 +12,8 @@ Usage is straightforward:
 
 ```erlang
 %% Create a new histogram.
+%% Default extents are 1 - 2^63-1 with 5 significant figures.
+%% Use bukkit_hdr:new/3 to supply custom extents.
 {ok, Hdr} = bukkit_hdr:new().
 
 %% Update the histogram.

@@ -7,6 +7,7 @@
 
 -export([
     new/0,
+    new/3,
     update/2,
     read/1
 ]).
@@ -19,12 +20,20 @@
     erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, ?LINE}]})
 ).
 
-
 -spec new() -> Hdr when
     Hdr :: hdr().
 
 new() ->
-    new(erlang:system_info(schedulers), 1, 1000000, 3).
+    new(1, 9223372036854775807, 5).
+
+-spec new(Lowest, Highest, SigFig) -> Hdr when
+    Lowest :: non_neg_integer(),
+    Highest :: pos_integer(),
+    SigFig :: pos_integer(),
+    Hdr :: hdr().
+
+new(Lowest, Highest, SigFig) ->
+    new(erlang:system_info(schedulers), Lowest, Highest, SigFig).
 
 -spec new(Count, Lowest, Highest, SigFig) -> Hdr when
     Count :: pos_integer(),
