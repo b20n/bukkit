@@ -20,27 +20,30 @@
     erlang:nif_error({not_loaded, [{module, ?MODULE}, {line, ?LINE}]})
 ).
 
--spec new() -> Hdr when
-    Hdr :: hdr().
+-spec new() -> {ok, Hdr} | Error when
+    Hdr :: hdr(),
+    Error :: badarg | undefined.
 
 new() ->
     new(1, 9223372036854775807, 5).
 
--spec new(Lowest, Highest, SigFig) -> Hdr when
+-spec new(Lowest, Highest, SigFig) -> {ok, Hdr} | Error when
     Lowest :: non_neg_integer(),
     Highest :: pos_integer(),
     SigFig :: pos_integer(),
-    Hdr :: hdr().
+    Hdr :: hdr(),
+    Error :: badarg | undefined.
 
 new(Lowest, Highest, SigFig) ->
     new(erlang:system_info(schedulers), Lowest, Highest, SigFig).
 
--spec new(Count, Lowest, Highest, SigFig) -> Hdr when
+-spec new(Count, Lowest, Highest, SigFig) -> {ok, Hdr} | Error  when
     Count :: pos_integer(),
     Lowest :: non_neg_integer(),
     Highest :: pos_integer(),
     SigFig :: pos_integer(),
-    Hdr :: hdr().
+    Hdr :: hdr(),
+    Error :: badarg | undefined.
 
 new(_, _, _, _) ->
     ?NOTLOADED.
