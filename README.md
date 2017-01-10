@@ -17,6 +17,9 @@ Usage is straightforward:
 %% Update the histogram.
 lists:foreach(fun(I) -> bukkit_hdr:update(Hdr, I) end, lists:seq(1, 1000)).
 
+%% Or update the histogram concurrently.
+lists:foreach(fun(I) -> spawn(fun() -> bukkit_hdr:update(Hdr, I) end) end, lists:seq(1, 1000)).
+
 %% Read statistics from the histogram.
 bukkit_hdr:read(Hdr).
 ```
