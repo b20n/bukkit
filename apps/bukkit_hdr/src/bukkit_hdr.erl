@@ -67,7 +67,7 @@ update(_, _, _) ->
 
 
 -spec read(Hdr) -> Read | Error when
-    Hdr :: hdr(),
+    Hdr :: hdr() | [hdr()],
     Read :: {Min, Max, P50, P75, P90, P99, P999, Mean, StdDev},
     Min :: non_neg_integer(),
     Max :: non_neg_integer(),
@@ -80,7 +80,13 @@ update(_, _, _) ->
     StdDev :: float(),
     Error :: undefined | error.
 
+read(Hdrs) when is_list(Hdrs) ->
+    read_int(Hdrs);
 read(Hdr) ->
+    read_int([Hdr]).
+
+
+read_int(_) ->
     ?NOTLOADED.
 
 

@@ -24,6 +24,11 @@ lists:foreach(fun(I) -> spawn(fun() -> bukkit_hdr:update(Hdr, I) end) end, lists
 
 %% Read statistics from the histogram.
 bukkit_hdr:read(Hdr).
+
+%% read/1 will also take a list of histograms and merge them at call time.
+%% The dimensions (lowest, highest, sigfig) of all histograms passed to read/1 must be identical.
+{ok, OtherHdr} = bukkit_hdr:new().
+bukkit_hdr:read([Hdr, OtherHdr]).
 ```
 
 `bukkit_hdr` does not implement any niceties such as a naming service or
