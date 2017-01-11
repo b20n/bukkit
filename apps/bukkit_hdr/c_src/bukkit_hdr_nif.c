@@ -155,7 +155,7 @@ bukkit_hdr_nif_read(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     goto done;
   }
 
-  for (int i = 1; i < wrap->count; i++) {
+  for (int i = 0; i < wrap->count; i++) {
     if (bukkit_hdr_add(wrap->hdrs[i], agg)) {
       ret = priv->atom_error;
       goto done;
