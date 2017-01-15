@@ -177,12 +177,6 @@ bukkit_hdr_nif_read_int(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     goto done;
   }
 
-  read = calloc(1, sizeof(HdrRead*));
-  if (read == NULL) {
-    ret = priv->atom_undefined;
-    goto done;
-  }
-
   for (int i = 0; i < n; i++) {
     if (wraps[i]->lowest != lowest) {
       ret = enif_make_badarg(env);
@@ -233,7 +227,7 @@ bukkit_hdr_nif_read_int(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   }
 
   if (read != NULL) {
-    free(read);
+    bukkit_hdr_read_free(read);
   }
 
   bukkit_hdr_free(agg);

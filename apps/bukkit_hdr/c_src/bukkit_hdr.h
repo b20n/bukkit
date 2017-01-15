@@ -39,6 +39,7 @@ void bukkit_hdr_free(Hdr*);
 int bukkit_hdr_add(Hdr*, Hdr*);
 int bukkit_hdr_update(Hdr*, int64_t);
 int bukkit_hdr_read(Hdr*, HdrRead**);
+void bukkit_hdr_read_free(HdrRead*);
 int64_t bukkit_hdr_percentile(Hdr*, double);
 double bukkit_hdr_mean(Hdr*);
 double bukkit_hdr_stddev(Hdr*);

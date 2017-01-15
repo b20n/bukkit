@@ -246,6 +246,12 @@ int bukkit_hdr_read(Hdr *hdr, HdrRead **result)
   return 0;
 }
 
+void bukkit_hdr_read_free(HdrRead *read)
+{
+  free(read);
+  return;
+}
+
 int64_t bukkit_hdr_percentile(Hdr *hdr, double percentile)
 {
   percentile = percentile < 100.0 ? percentile : 100.0;
