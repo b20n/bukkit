@@ -119,7 +119,6 @@ static int64_t median_equivalent_value(Hdr *hdr, int64_t value)
 
 int bukkit_hdr_new(int64_t lowest, int64_t highest, int sigfig, Hdr **result)
 {
-
   Hdr *hdr = NULL;
   hdr = calloc(1, sizeof(Hdr));
   if (hdr == NULL) {
@@ -205,10 +204,16 @@ int bukkit_hdr_update(Hdr *hdr, int64_t value)
   }
 
   int32_t normalized_index = normalize_index(hdr, index);
+  __sync_fetch_and_add(&hdr->counts[normalized_index], 1);
+  __sync_fetch_and_add(&hdr->total_count, 1);
   hdr->counts[normalized_index]++;
   hdr->total_count++;
-  hdr->min = (value < hdr->min) ? value : hdr->min;
-  hdr->max = (value > hdr->max) ? value : hdr->max;
+  while (hdr->min > value) {
+    __sync_val_compare_and_swap(&hdr->min, hdr->min, value);
+  }
+  while (hdr->max < value) {
+    __sync_val_compare_and_swap(&hdr->max, hdr->max, value);
+  }
   return 0;
 }
 

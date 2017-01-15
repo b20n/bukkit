@@ -7,11 +7,7 @@
 
 typedef struct
 {
-  int64_t lowest;
-  int64_t highest;
-  int sigfig;
-  int count;
-  Hdr **hdrs;
+  Hdr *hdr;
 } HdrWrap;
 
 typedef struct
@@ -37,30 +33,26 @@ bukkit_hdr_nif_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   HdrWrap *wrap = NULL;
   HdrPriv *priv = enif_priv_data(env);
-  int count, sigfig;
   ErlNifSInt64 lowest, highest;
+  int sigfig;
 
-  if (argc != 4) {
+  if (argc != 3) {
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int(env, argv[0], &count)) {
+  if (!enif_get_int64(env, argv[0], &lowest)) {
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int64(env, argv[1], &lowest)) {
+  if (!enif_get_int64(env, argv[1], &highest)) {
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int64(env, argv[2], &highest)) {
+  if (!enif_get_int(env, argv[2], &sigfig)) {
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int(env, argv[3], &sigfig)) {
-    return enif_make_badarg(env);
-  }
-
-  if (count < 1 || lowest < 1 || sigfig < 1 || 5 < sigfig || lowest > highest) {
+  if (lowest < 1 || sigfig < 1 || 5 < sigfig || lowest > highest) {
     return enif_make_badarg(env);
   }
 
@@ -70,23 +62,8 @@ bukkit_hdr_nif_new(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
   }
 
   memset(wrap, '\0', sizeof(HdrWrap));
-  wrap->lowest = lowest;
-  wrap->highest = highest;
-  wrap->sigfig = sigfig;
-  wrap->count = count;
-  wrap->hdrs = calloc(wrap->count, sizeof(Hdr*));
-  if (wrap->hdrs == NULL) {
+  if (bukkit_hdr_new(lowest, highest, sigfig, &wrap->hdr) != 0) {
     return priv->atom_undefined;
-  }
-
-  for (int i = 0; i < count; i++) {
-    if (bukkit_hdr_new(lowest, highest, sigfig, &wrap->hdrs[i]) != 0) {
-      for (int j = 0; j < i; j++) {
-        bukkit_hdr_free(wrap->hdrs[j]);
-      }
-
-      return priv->atom_undefined;
-    }
   }
 
   ERL_NIF_TERM ret = enif_make_resource(env, wrap);
@@ -99,10 +76,9 @@ bukkit_hdr_nif_update(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
 {
   HdrWrap *wrap = NULL;
   HdrPriv *priv = enif_priv_data(env);
-  int index;
   ErlNifSInt64 value;
 
-  if (argc != 3) {
+  if (argc != 2) {
     return enif_make_badarg(env);
   }
 
@@ -110,19 +86,11 @@ bukkit_hdr_nif_update(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int(env, argv[1], &index)) {
+  if (!enif_get_int64(env, argv[1], &value)) {
     return enif_make_badarg(env);
   }
 
-  if (!enif_get_int64(env, argv[2], &value)) {
-    return enif_make_badarg(env);
-  }
-
-  if (index > wrap->count) {
-    return enif_make_badarg(env);
-  }
-
-  if (bukkit_hdr_update(wrap->hdrs[index - 1], value) != 0) {
+  if (bukkit_hdr_update(wrap->hdr, value) != 0) {
     return priv->atom_error;
   }
 
@@ -149,7 +117,7 @@ bukkit_hdr_nif_read_int(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     goto done;
   }
 
-  wraps = calloc(n, sizeof(HdrWrap**));
+  wraps = calloc(n, sizeof(HdrWrap*));
   if (wraps == NULL) {
     ret = priv->atom_undefined;
     goto done;
@@ -169,35 +137,33 @@ bukkit_hdr_nif_read_int(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     }
   }
 
-  int64_t lowest = wraps[0]->lowest;
-  int64_t highest = wraps[0]->highest;
-  int sigfig = wraps[0]->sigfig;
+  int64_t lowest = wraps[0]->hdr->lowest_trackable_value;
+  int64_t highest = wraps[0]->hdr->highest_trackable_value;
+  int sigfig = wraps[0]->hdr->significant_figures;
   if (bukkit_hdr_new(lowest, highest, sigfig, &agg) != 0) {
     ret = priv->atom_error;
     goto done;
   }
 
   for (int i = 0; i < n; i++) {
-    if (wraps[i]->lowest != lowest) {
+    if (wraps[i]->hdr->lowest_trackable_value != lowest) {
       ret = enif_make_badarg(env);
       goto done;
     }
 
-    if (wraps[i]->highest != highest) {
+    if (wraps[i]->hdr->highest_trackable_value != highest) {
       ret = enif_make_badarg(env);
       goto done;
     }
 
-    if (wraps[i]->sigfig != sigfig) {
+    if (wraps[i]->hdr->significant_figures != sigfig) {
       ret = enif_make_badarg(env);
       goto done;
     }
 
-    for (int j = 0; j < wraps[i]->count; j++) {
-      if (bukkit_hdr_add(wraps[i]->hdrs[j], agg)) {
-        ret = priv->atom_error;
-        goto done;
-      }
+    if (bukkit_hdr_add(wraps[i]->hdr, agg) != 0) {
+      ret = priv->atom_error;
+      goto done;
     }
   }
 
@@ -240,9 +206,7 @@ bukkit_hdr_nif_destroy(ErlNifEnv* env, void* obj)
 {
   HdrWrap *wrap = (HdrWrap *) obj;
   if (wrap != NULL) {
-    for (int i = 0; i < wrap->count; i++) {
-      bukkit_hdr_free(wrap->hdrs[i]);
-    }
+    bukkit_hdr_free(wrap->hdr);
   }
 
   return;
@@ -294,8 +258,8 @@ upgrade(ErlNifEnv* env, void** priv, void** old_priv, ERL_NIF_TERM load_info)
 }
 
 static ErlNifFunc funcs[] = {
-  {"new", 4, bukkit_hdr_nif_new},
-  {"update", 3, bukkit_hdr_nif_update},
+  {"new", 3, bukkit_hdr_nif_new},
+  {"update", 2, bukkit_hdr_nif_update},
   {"read_int", 1, bukkit_hdr_nif_read_int}
 };
 

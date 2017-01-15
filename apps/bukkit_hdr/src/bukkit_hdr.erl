@@ -34,18 +34,7 @@ new() ->
     Hdr :: hdr(),
     Error :: badarg | undefined.
 
-new(Lowest, Highest, SigFig) ->
-    new(erlang:system_info(schedulers), Lowest, Highest, SigFig).
-
--spec new(Count, Lowest, Highest, SigFig) -> {ok, Hdr} | Error  when
-    Count :: pos_integer(),
-    Lowest :: non_neg_integer(),
-    Highest :: pos_integer(),
-    SigFig :: pos_integer(),
-    Hdr :: hdr(),
-    Error :: badarg | undefined.
-
-new(_, _, _, _) ->
+new(_, _, _) ->
     ?NOTLOADED.
 
 
@@ -54,15 +43,6 @@ new(_, _, _, _) ->
     Value :: non_neg_integer().
 
 update(Hdr, Value) ->
-    Index = erlang:system_info(scheduler_id),
-    update(Hdr, Index, Value).
-
--spec update(Hdr, Index, Value) -> ok when
-    Hdr :: hdr(),
-    Index :: pos_integer(),
-    Value :: non_neg_integer().
-
-update(_, _, _) ->
     ?NOTLOADED.
 
 
