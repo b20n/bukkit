@@ -196,7 +196,10 @@ bukkit_hdr_nif_read_int(ErlNifEnv* env, int argc, const ERL_NIF_TERM argv[])
     bukkit_hdr_read_free(read);
   }
 
-  bukkit_hdr_free(agg);
+  if (agg != NULL) {
+    bukkit_hdr_free(agg);
+  }
+
   return ret;
 }
 
